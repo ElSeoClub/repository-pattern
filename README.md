@@ -1,6 +1,8 @@
 # Laravel Repository Pattern Package
 
-This package allows you to easily generate repository classes, interfaces, and service providers for your Laravel models. By following a consistent repository pattern, it provides a clear separation of concerns for managing data access logic.
+This package implements the repository pattern in Laravel, providing a **simple way to create repositories** for your
+models. The repository pattern helps you to separate data access logic, and improve the maintainability of your
+application, and the most importart **reduce the boilerplate code**.
 
 ## Requirements
 
@@ -73,29 +75,106 @@ php artisan vendor:publish --tag=repository-config
 
 This will create a `config/repository.php` file where you can adjust settings.
 
-## Configuration Options
-
-The configuration file (`config/repository.php`) contains the following options:
-
-- **Cache Repository**: When `cache` is set to `true`, the package will use `YourModelCacheRepository` instead of `YourModelRepository` to provide caching functionality. This can help improve performance by reducing the need for repetitive database queries.
-
-- **Model Namespace**: Define the base namespace for your models (default: `App\Models`).
-
-- **Model Base Directory**: Specify the base directory for your models (default: `app/Models`).
-
-- **Default Interface Methods**: Define the default methods for generated repository interfaces, including their parameters, return types, and logic. Methods like `findById`, `findAll`, `create`, and `update` are included by default, and you can modify or add more as needed.
-
 ## Cache Repository
 
-When caching is enabled in the configuration (`'cache' => true`), the generated repository will use a `YourModelCacheRepository` instead of `YourModelRepository`. This repository is designed to provide caching for common queries, which can significantly improve performance, especially for frequently accessed data. To switch between using the regular repository and the cache-enabled repository, update the `cache` setting in `config/repository.php` and run the following command. This command will automatically update all bindings in the provider, allowing you to easily switch between direct queries and cache usage throughout your application:
+When cache is enabled in the config/repository.php `'cache' => true`, the new repositories created after this change
+will use a `YourModelCacheRepository` instead of `YourModelRepository`. This repository is designed to provide caching
+for common queries, which can significantly improve performance, especially for frequently accessed data.
+
+To switch between using the regular repository and the cache-enabled repository, you can use the following commands:
 
 ```bash
-php artisan repository:with-cache true
-# or
-php artisan repository:with-cache false
+php artisan repository:bind default
+```
+
+```bash
+php artisan repository:bind cache
+```
+
+After running the command, all the existing repositories will be updated to use the specified repository type.
+
+However, new repositorioes created with `php artisan make:repository YourModel` will use the specified repository type
+in config.
+
+## Manual Binding
+
+If you prefer to manually bind the repositories, you can edit the `ModelRepositoryServiceProvider` and set the bindings
+manually. This can be useful if you want to customize the repository bindings or use a different naming convention.
+
+```php
+$this->app->bind(\App\Repositories\Interfaces\UserInterface::class, \App\Repositories\UserRepository::class);
+$this->app->bind(\App\Repositories\Interfaces\UserInterface::class, \App\Repositories\RoleCacheRepository::class);
+```
+
+## Custom Repository Methods
+
+You can generate automatically the methods for the repository by editing the `config/repository.php`
+
+```php
+    
+    'interfaces' => []
+
+```
+
+To do it you have to add an array with the name of the method and the parameters that it will receive.
+
+```php
+    'interfaces' => [
+        [
+            'name' => 'find', // Method name
+            'parameters' => [
+                ['id' => 'int'], // Parameter required in the method and the type
+            ],
+            'return' => '?{{model}}', // Return type of the method
+            'logic' => [
+                // The body of the method for default repository
+                'default' => 'return $this->model->find($id);', 
+                // The body of the method for cache repository
+                'cache' => 'return Cache::remember("{{model}}:{$id}", 60, function() use ($id) { return $this->repository->find($id); });',
+            ],
+        ],
+    ]
+```
+
+With this, the package will generate the methods for the repository.
+
+```php
+    //In the interface adds the method
+    public function find(int $id): ?User;
+    //In the repository adds the method
+    public function find(int $id): ?User
+    {
+        return $this->model->find($id);
+    }
+```
+
+## Using the repository in your controller
+
+```php
+namespace App\Http\Controllers;
+
+use App\Repositories\Interfaces\UserInterface;
+
+class YourController extends Controller
+{
+    protected $userRepository;
+
+    public function __construct(UserInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
+    public function index()
+    {
+        $users = $this->userRepository->find();
+        return view('users.index', compact('users'));
+    }
+}
 ```
 
 ## Summary
 
-This package helps you follow the repository pattern easily in Laravel, promoting better separation of concerns and making data access logic more maintainable. Feel free to customize the generated files and adjust the settings in the configuration file to fit your application's needs.
+This package helps you follow the repository pattern easily in Laravel, promoting better separation of concerns and
+making data access logic more maintainable. Feel free to customize the generated files and adjust the settings in the
+configuration file to fit your application's needs.
 
