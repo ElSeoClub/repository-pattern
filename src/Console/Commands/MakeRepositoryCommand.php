@@ -3,6 +3,7 @@
 namespace Elseoclub\RepositoryPattern\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
 
 class MakeRepositoryCommand extends Command
@@ -41,20 +42,35 @@ class MakeRepositoryCommand extends Command
 
     protected function createRepository (): void
     {
-
+        $isCreated = false;
         $namespace = $this->repositoryNamespace . $this->subfolderNamespace;
 
         $interfaceNamespace = $this->repositoryNamespace . '\\Interfaces' . $this->subfolderNamespace;
         $path = app_path('Repositories/' . $this->subfolder . "/{$this->modelName}Repository.php");
+        $pathCache = app_path('Repositories/' . $this->subfolder . "/{$this->modelName}CacheRepository.php");
+
         $directory = dirname($path);
+        $directoryCache = dirname($pathCache);
 
         if (!$this->files->exists($directory)) {
             $this->files->makeDirectory($directory, 0755, true);
         }
 
+        if (!$this->files->exists($directoryCache)) {
+            $this->files->makeDirectory($directoryCache, 0755, true);
+        }
+
         if ($this->files->exists($path)) {
             $this->warn("The repository {$this->modelName}Repository already exists.");
+            $isCreated = true;
+        }
+        
+        if ($this->files->exists($pathCache)) {
+            $this->warn("The repository {$this->modelName}CacheRepository already exists.");
+            $isCreated = true;
+        }
 
+        if ($isCreated) {
             return;
         }
 
@@ -63,12 +79,22 @@ class MakeRepositoryCommand extends Command
         $stub = $this->getStub('repository');
         $content = str_replace(
             ['{{namespace}}', '{{interfaceNamespace}}', '{{model_namespace}}', '{{methods}}', '{{model}}'],
-            [$namespace, $interfaceNamespace, $this->modelNamespace, $methods, $this->modelName],
+            [$namespace, $interfaceNamespace, $this->modelNamespace, implode("\n\n", $methods['default']), $this->modelName],
             $stub
         );
 
         $this->files->put($path, $content);
-        $this->info("Repository created at {$path}");
+        $this->info("Repository created at $path");
+
+        $stub = $this->getStub('repositoryCache');
+        $content = str_replace(
+            ['{{namespace}}', '{{interfaceNamespace}}', '{{model_namespace}}', '{{methods}}', '{{model}}'],
+            [$namespace, $interfaceNamespace, $this->modelNamespace, implode("\n\n", $methods['cache']), $this->modelName],
+            $stub
+        );
+
+        $this->files->put($pathCache, $content);
+        $this->info("Cache Repository created at $pathCache");
     }
 
     protected function createInterface (): void
@@ -95,7 +121,7 @@ class MakeRepositoryCommand extends Command
         );
 
         $this->files->put($path, $content);
-        $this->info("Interface created at {$path}");
+        $this->info("Interface created at $path");
     }
 
     protected function updateProvider (): void
@@ -116,8 +142,8 @@ class MakeRepositoryCommand extends Command
             $this->files->makeDirectory($directory, 0755, true);
         }
 
-        $bindLine = "\$this->app->bind(\\{$interfaceClass}::class, \\{$repositoryClass}::class);";
-        $bindCacheLine = "\$this->app->bind(\\{$interfaceClass}::class, \\{$repositoryCacheClass}::class);";
+        $bindLine = "\$this->app->bind(\\$interfaceClass::class, \\$repositoryClass::class);";
+        $bindCacheLine = "\$this->app->bind(\\$interfaceClass::class, \\$repositoryCacheClass::class);";
 
         $useBindLine = $bindLine;
         $wrongBindLine = $bindCacheLine;
@@ -135,51 +161,61 @@ class MakeRepositoryCommand extends Command
             $this->files->put($path, $content);
             $created = 'created';
         }
-        $content = $this->files->get($path);
+        try {
+            $content = $this->files->get($path);
+        } catch (FileNotFoundException) {
+            $this->error("Cannot read the file at $path.");
+
+            exit(4);
+        }
         if (str_contains($content, $wrongBindLine)) {
             $content = str_replace($wrongBindLine, $useBindLine, $content);
             $this->files->put($path, $content);
-            $this->info("Container Binding {$created} at {$path}");
+            $this->info("Container Binding $created at $path");
 
-            return;
         } elseif (!str_contains($content, $useBindLine)) {
             $bindPointer = '// [binds]';
 
             if (!str_contains($content, $bindPointer)) {
                 $this->error("Cannot add the Container Binding.\nInside in app/Provider/ModelRepositoryServiceProvider \nPlease add the following line manually: \n\npublic function register()\n{\n    // [binds]\n}\n\nAnd then run the command again.");
-
-                return;
+                exit(5);
             }
 
             $content = str_replace(
                 $bindPointer,
-                "{$bindPointer}\n        {$useBindLine}",
+                "$bindPointer\n        $useBindLine",
                 $content
             );
             $this->files->put($path, $content);
-            $this->info("Container Binding {$created} at {$path}");
+            $this->info("Container Binding $created at $path");
         } else {
-            $this->warn("The container bind for {$this->modelName} already exists in the provider.");
+            $this->warn("The container bind for $this->modelName already exists in the provider.");
         }
 
     }
 
     protected function getStub (string $type): string
     {
-        $stubPath = __DIR__ . "/../../../stubs/{$type}.stub";
+        $stubPath = __DIR__ . "/../../../stubs/$type.stub";
         if (!$this->files->exists($stubPath)) {
-            $this->error("The stub {$type}.stub does not exist.");
-            exit;
+            $this->error("The stub $type.stub does not exist.");
+            exit(7);
         }
 
-        return $this->files->get($stubPath);
+        try {
+            return $this->files->get($stubPath);
+        } catch (FileNotFoundException) {
+            $this->error("Cannot read the stub file at $stubPath.");
+
+            exit(6);
+        }
     }
 
     protected function findModelNameAndNamespace (string $model): void
     {
         $namespace = 'App\\Models';
 
-        if (class_exists("{$namespace}\\{$model}")) {
+        if (class_exists("$namespace\\$model")) {
             $this->modelNamespace = $namespace;
             $this->modelName = $model;
             $this->subfolderNamespace = '';
@@ -201,7 +237,7 @@ class MakeRepositoryCommand extends Command
         foreach ($files as $file) {
             $relativePath = $file->getRelativePathname();
             $className = str_replace(['/', '.php'], ['\\', ''], $relativePath);
-            $fullClass = "{$namespace}\\{$className}";
+            $fullClass = "$namespace\\$className";
 
             if (class_exists($fullClass) && strtolower(class_basename($fullClass)) === strtolower($model)) {
 
@@ -216,7 +252,7 @@ class MakeRepositoryCommand extends Command
                 return;
             }
         }
-        $this->error("Model {$model} not found.");
+        $this->error("Model $model not found.");
         exit(3);
     }
 
@@ -226,16 +262,8 @@ class MakeRepositoryCommand extends Command
         $methods = [];
 
         foreach ($methodsConfig as $method) {
-            $parameters = array_map(function ($param) {
-                $name = array_key_first($param);
-                $type = $param[$name];
-
-                return "{$type} \${$name}";
-            }, $method['parameters']);
-
-            $signature = implode(', ', $parameters);
-            $returnType = $method['return'] ? ": {$method['return']}" : '';
-            $methods[] = "    public function {$method['name']}({$signature}){$returnType};";
+            [$signature, $returnType] = $this->generateMethodSignatureAndReturnType($method);
+            $methods[] = "    public function {$method['name']}($signature)$returnType;";
         }
 
         return implode("\n", $methods);
@@ -244,34 +272,59 @@ class MakeRepositoryCommand extends Command
     /**
      * Generate the method stubs for the repository based on the interface configuration.
      *
-     * @return string
+     * @return array
      */
-    protected function generateRepositoryMethods (): string
+    protected function generateRepositoryMethods (): array
     {
         $methodsConfig = config('repository.interfaces', []);
-        $methods = [];
+        $methods = [
+            'default' => [],
+            'cache' => [],
+        ];
 
         foreach ($methodsConfig as $method) {
-            $parameters = array_map(function ($param) {
-                $name = array_key_first($param);
-                $type = $param[$name];
+            [$signature, $returnType] = $this->generateMethodSignatureAndReturnType($method);
+            $defaultLogic = $method['logic']['default'] ?? "// TODO: Implement {$method['name']}() method.";
+            $cacheLogic = $method['logic']['cache'] ?? $defaultLogic;
 
-                return "{$type} \${$name}";
-            }, $method['parameters']);
-
-            $signature = implode(', ', $parameters);
-            $returnType = $method['return'] ? ": {$method['return']}" : '';
-            $logic = $method['logic'] ?? "// TODO: Implement {$method['name']}() method.";
-
-            $methods[] = <<<METHOD
-    public function {$method['name']}({$signature}){$returnType}
+            $methods['default'][] = <<<METHOD
+    public function {$method['name']}($signature){$returnType}
     {
-        {$logic}
+        {$defaultLogic}
     }
 METHOD;
+
+            $methods['cache'][] = <<<METHOD
+    public function {$method['name']}($signature){$returnType}
+    {
+        {$cacheLogic}
+    }
+METHOD;
+
         }
 
-        return implode("\n\n", $methods);
+        return $methods;
+    }
+
+    /**
+     * Generate the method signature and return type based on the method configuration.
+     *
+     * @param array $method
+     * @return array
+     */
+    protected function generateMethodSignatureAndReturnType (array $method): array
+    {
+        $parameters = array_map(function ($param) {
+            $name = array_key_first($param);
+            $type = $param[$name];
+
+            return "$type \$$name";
+        }, $method['parameters']);
+
+        $signature = implode(', ', $parameters);
+        $returnType = $method['return'] ? ": {$method['return']}" : '';
+
+        return [$signature, $returnType];
     }
 
 }
