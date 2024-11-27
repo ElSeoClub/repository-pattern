@@ -1,0 +1,16 @@
+<?php
+
+namespace {{namespace}};
+
+use Illuminate\Support\Collection;
+use {{model_namespace}}\{{model}};
+use {{interfaceNamespace}}\{{model}}Interface;
+
+final readonly class {{model}}Repository implements {{model}}Interface
+{
+    public function __construct(private {{model}} $model)
+    {
+    }
+
+{{methods}}
+}

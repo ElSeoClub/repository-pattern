@@ -1,0 +1,11 @@
+<?php
+
+namespace {{namespace}};
+
+use Illuminate\Support\Collection;
+use {{model_namespace}}\{{model}};
+
+interface {{model}}Interface
+{
+{{methods}}
+}
