@@ -3,18 +3,16 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Cache Enabled
+    | Use cache repository
     |--------------------------------------------------------------------------
     |
     | Important: When this value is changed, make sure to run:
     |
-    | php artisan repository:with-cache true
+    | php artisan repository:bind-cache
     |
     | or
     |
-    | php artisan repository:with-cache false
-    |
-    | To update the container bindings.
+    | php artisan repository:bind-default
     |
     */
     'cache' => false,
@@ -31,18 +29,24 @@ return [
     */
     'interfaces' => [
         [
-            'name' => 'findById',
+            'name' => 'find',
             'parameters' => [
                 ['id' => 'int'],
             ],
             'return' => '?{{model}}',
-            'logic' => 'return $this->model->find($id);',
+            'logic' => [
+                'default' => 'return $this->model->find($id);',
+                'cache' => 'return Cache::remember("{{model}}:{$id}", 60, function() use ($id) { return $this->repository->find($id); });',
+            ],
         ],
         [
-            'name' => 'findAll',
+            'name' => 'all',
             'parameters' => [],
             'return' => 'Collection',
-            'logic' => 'return $this->model->all();',
+            'logic' => [
+                'default' => 'return $this->model->all();',
+                'cache' => 'return Cache::remember("{{model}}:all", 60, function() { return $this->repository->all(); });',
+            ],
         ],
         [
             'name' => 'create',
@@ -50,9 +54,16 @@ return [
                 ['data' => 'array'],
             ],
             'return' => '{{model}}',
-            'logic' => 'return $this->model->create($data);',
+            'logic' => [
+                'default' => 'return $this->model->create($data);',
+                'cache' => '
+                    $created = $this->repository->create($data);
+                    Cache::forget("{{model}}:all");
+                    Cache::put("{{model}}:{$created->id}", $created, 60);
+                    return $created;
+                ',
+            ],
         ],
-
         [
             'name' => 'update',
             'parameters' => [
@@ -60,7 +71,36 @@ return [
                 ['data' => 'array'],
             ],
             'return' => 'bool',
-            'logic' => 'return $this->model->where(\'id\', $id)->update($data);',
+            'logic' => [
+                'default' => 'return $this->model->where(\'id\', $id)->update($data);',
+                'cache' => '
+                    $updated = $this->repository->update($id, $data);
+                    if ($updated) {
+                        Cache::forget("{{model}}:{$id}");
+                        Cache::forget("{{model}}:all");
+                        Cache::put("{{model}}:{$id}", $this->repository->find($id), 60);
+                    }
+                    return $updated;
+                ',
+            ],
+        ],
+        [
+            'name' => 'delete',
+            'parameters' => [
+                ['id' => 'int'],
+            ],
+            'return' => 'bool',
+            'logic' => [
+                'default' => 'return $this->model->where(\'id\', $id)->delete();',
+                'cache' => '
+                    $deleted = $this->repository->delete($id);
+                    if ($deleted) {
+                        Cache::forget("{{model}}:{$id}");
+                        Cache::forget("{{model}}:all");
+                    }
+                    return $deleted;
+                ',
+            ],
         ],
     ],
 ];
