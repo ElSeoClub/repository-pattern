@@ -10,7 +10,6 @@ class MakeRepositoryCommand extends Command
     protected $signature = 'make:repository {model}';
     protected $description = 'Creates a repository, interface, and updates the service provider for a model.';
 
-
     protected string $repositoryNamespace = 'App\\Repositories';
     protected ?string $modelNamespace = null;
     protected ?string $modelName = null;
@@ -19,18 +18,19 @@ class MakeRepositoryCommand extends Command
 
     protected Filesystem $files;
 
-    public function __construct(Filesystem $files)
+    public function __construct (Filesystem $files)
     {
         parent::__construct();
         $this->files = $files;
     }
 
-    public function handle(): void
+    public function handle (): void
     {
         $this->findModelNameAndNamespace($this->argument('model'));
-        if(!$this->modelName || !$this->modelNamespace || $this->subfolderNamespace === null || $this->subfolder === null){
+        if (!$this->modelName || !$this->modelNamespace || $this->subfolderNamespace === null || $this->subfolder === null) {
             $this->error("Model {$this->argument('model')} not found");
-            return;
+
+            exit(1);
         }
 
         $this->createRepository();
@@ -44,8 +44,8 @@ class MakeRepositoryCommand extends Command
 
         $namespace = $this->repositoryNamespace . $this->subfolderNamespace;
 
-        $interfaceNamespace = $this->repositoryNamespace .'\\Interfaces' . $this->subfolderNamespace;
-        $path = app_path('Repositories/' . $this->subfolder. "/{$this->modelName}Repository.php");
+        $interfaceNamespace = $this->repositoryNamespace . '\\Interfaces' . $this->subfolderNamespace;
+        $path = app_path('Repositories/' . $this->subfolder . "/{$this->modelName}Repository.php");
         $directory = dirname($path);
 
         if (!$this->files->exists($directory)) {
@@ -63,7 +63,7 @@ class MakeRepositoryCommand extends Command
         $stub = $this->getStub('repository');
         $content = str_replace(
             ['{{namespace}}', '{{interfaceNamespace}}', '{{model_namespace}}', '{{methods}}', '{{model}}'],
-            [$namespace, $interfaceNamespace,$this->modelNamespace, $methods, $this->modelName],
+            [$namespace, $interfaceNamespace, $this->modelNamespace, $methods, $this->modelName],
             $stub
         );
 
@@ -73,7 +73,7 @@ class MakeRepositoryCommand extends Command
 
     protected function createInterface (): void
     {
-        $namespace = $this->repositoryNamespace . '\\Interfaces'. $this->subfolderNamespace;
+        $namespace = $this->repositoryNamespace . '\\Interfaces' . $this->subfolderNamespace;
         $path = app_path('Repositories/Interfaces/' . $this->subfolder . "/{$this->modelName}Interface.php");
         $directory = dirname($path);
         if (!$this->files->exists($directory)) {
@@ -98,13 +98,13 @@ class MakeRepositoryCommand extends Command
         $this->info("Interface created at {$path}");
     }
 
-    protected function updateProvider(): void
+    protected function updateProvider (): void
     {
-        $interfaceClass = $this->repositoryNamespace. '\\Interfaces' . $this->subfolderNamespace. "\\{$this->modelName}Interface";
-        $repositoryClass = $this->repositoryNamespace . $this->subfolderNamespace. "\\{$this->modelName}Repository";
+        $interfaceClass = $this->repositoryNamespace . '\\Interfaces' . $this->subfolderNamespace . "\\{$this->modelName}Interface";
+        $repositoryClass = $this->repositoryNamespace . $this->subfolderNamespace . "\\{$this->modelName}Repository";
         $repositoryCacheClass = null;
-        if(config('repository.cache', false)){
-            $repositoryCacheClass = $this->repositoryNamespace . $this->subfolderNamespace. "\\{$this->modelName}CacheRepository";
+        if (config('repository.cache', false)) {
+            $repositoryCacheClass = $this->repositoryNamespace . $this->subfolderNamespace . "\\{$this->modelName}CacheRepository";
         }
 
         $path = app_path('Providers/ModelRepositoryServiceProvider.php');
@@ -121,7 +121,7 @@ class MakeRepositoryCommand extends Command
 
         $useBindLine = $bindLine;
         $wrongBindLine = $bindCacheLine;
-        if(config('repository.cache', false)){
+        if (config('repository.cache', false)) {
             $useBindLine = $bindCacheLine;
             $wrongBindLine = $bindLine;
         }
@@ -136,16 +136,18 @@ class MakeRepositoryCommand extends Command
             $created = 'created';
         }
         $content = $this->files->get($path);
-        if(str_contains($content, $wrongBindLine)){
+        if (str_contains($content, $wrongBindLine)) {
             $content = str_replace($wrongBindLine, $useBindLine, $content);
             $this->files->put($path, $content);
             $this->info("Container Binding {$created} at {$path}");
+
             return;
-        }elseif (!str_contains($content, $useBindLine)) {
+        } elseif (!str_contains($content, $useBindLine)) {
             $bindPointer = '// [binds]';
 
-            if(!str_contains($content, $bindPointer)){
+            if (!str_contains($content, $bindPointer)) {
                 $this->error("Cannot add the Container Binding.\nInside in app/Provider/ModelRepositoryServiceProvider \nPlease add the following line manually: \n\npublic function register()\n{\n    // [binds]\n}\n\nAnd then run the command again.");
+
                 return;
             }
 
@@ -162,32 +164,36 @@ class MakeRepositoryCommand extends Command
 
     }
 
-
-    protected function getStub(string $type): string
+    protected function getStub (string $type): string
     {
         $stubPath = __DIR__ . "/../../../stubs/{$type}.stub";
         if (!$this->files->exists($stubPath)) {
             $this->error("The stub {$type}.stub does not exist.");
             exit;
         }
+
         return $this->files->get($stubPath);
     }
 
-    protected function findModelNameAndNamespace(string $model): void
+    protected function findModelNameAndNamespace (string $model): void
     {
-        $namespace = config('repository.model_namespace', 'App\\Models');
+        $namespace = 'App\\Models';
 
         if (class_exists("{$namespace}\\{$model}")) {
             $this->modelNamespace = $namespace;
             $this->modelName = $model;
+            $this->subfolderNamespace = '';
+            $this->subfolder = '';
+
             return;
         }
 
-        $baseDir = base_path(config('repository.base_dir', 'app/Models'));
+        $baseDir = app_path('Models');
 
         if (!is_dir($baseDir)) {
-            $this->error("The directory ".config('repository.base_dir', 'app/Models')." does not exist.");
-            return;
+            $this->error("The directory app/Models does not exist.");
+
+            exit(2);
         }
 
         $files = $this->files->allFiles($baseDir);
@@ -206,14 +212,15 @@ class MakeRepositoryCommand extends Command
                 $this->subfolder = $subfolder;
                 $this->subfolderNamespace = !empty($subfolder) ? '\\' . str_replace('/', '\\', $subfolder) : '';
                 $this->modelNamespace = $namespace . $this->subfolderNamespace;
+
                 return;
             }
         }
-
-        return;
+        $this->error("Model {$model} not found.");
+        exit(3);
     }
 
-    protected function generateMethods(): string
+    protected function generateMethods (): string
     {
         $methodsConfig = config('repository.interfaces', []);
         $methods = [];
@@ -222,6 +229,7 @@ class MakeRepositoryCommand extends Command
             $parameters = array_map(function ($param) {
                 $name = array_key_first($param);
                 $type = $param[$name];
+
                 return "{$type} \${$name}";
             }, $method['parameters']);
 
@@ -238,7 +246,7 @@ class MakeRepositoryCommand extends Command
      *
      * @return string
      */
-    protected function generateRepositoryMethods(): string
+    protected function generateRepositoryMethods (): string
     {
         $methodsConfig = config('repository.interfaces', []);
         $methods = [];
@@ -247,6 +255,7 @@ class MakeRepositoryCommand extends Command
             $parameters = array_map(function ($param) {
                 $name = array_key_first($param);
                 $type = $param[$name];
+
                 return "{$type} \${$name}";
             }, $method['parameters']);
 
@@ -264,6 +273,5 @@ METHOD;
 
         return implode("\n\n", $methods);
     }
-
 
 }

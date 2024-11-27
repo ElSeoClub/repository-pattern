@@ -3,30 +3,6 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Model Namespace
-    |--------------------------------------------------------------------------
-    |
-    | Here you can define the base namespace for the models in your application.
-    | This will be used by the generation command to locate the models.
-    | By default, it is set to 'App\Models'.
-    |
-    */
-    'model_namespace' => 'App\\Models',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Model Base Directory
-    |--------------------------------------------------------------------------
-    |
-    | Here you can define the base directory for your models. This directory
-    | will be used to search for model files. By default, it points to
-    | 'app/Models', but you can customize it as needed.
-    |
-    */
-    'base_dir' => 'app/Models',
-
-    /*
-    |--------------------------------------------------------------------------
     | Cache Enabled
     |--------------------------------------------------------------------------
     |

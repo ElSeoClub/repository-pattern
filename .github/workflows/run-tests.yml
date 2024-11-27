@@ -1,0 +1,39 @@
+name: Run Tests for Laravel Repository Pattern Package
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mbstring, mysql, pdo_mysql
+          coverage: xdebug
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Set up Laravel environment
+        run: |
+          echo "APP_ENV=testing" > .env
+          echo "APP_KEY=base64:SomeBase64EncodedKey=" >> .env
+          echo "APP_DEBUG=true" >> .env
+          echo "APP_URL=http://localhost" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=:memory:" >> .env
+
+      - name: Run Tests
+        run: ./vendor/bin/phpunit --configuration phpunit.xml --testdox --verbose
