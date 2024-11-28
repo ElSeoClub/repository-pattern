@@ -24,7 +24,7 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
     {
         // Preparar
         $stubPath = __DIR__ . '/../../src/stubs/BaseRepositoryInterface.stub';
-        $targetPath = base_path('packages/elseoclub/repository-pattern/src/Repositories/Interfaces/BaseRepositoryInterface.php');
+        $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
 
         $filesystem = new Filesystem();
         if ($filesystem->exists($targetPath)) {
