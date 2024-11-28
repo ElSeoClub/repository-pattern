@@ -26,7 +26,7 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
     {
         $filesystem = new Filesystem();
 
-        $this->assertTrue(is_dir(base_path('app')), 'La ruta base del entorno de Laravel no es correcta.');
+        $this->assertTrue(is_dir(base_path('app')), 'The app directory does not exist.');
 
         $command = new MakeBaseRepositoryInterfaceCommand($filesystem);
 
@@ -37,7 +37,7 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
 
         $command->run($input, $output);
 
-        $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterfacex.php');
-        $this->assertTrue($filesystem->exists($targetPath), 'El archivo BaseRepositoryInterface no fue creado correctamente.');
+        $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
+        $this->assertTrue($filesystem->exists($targetPath), 'The base repository interface was not created.');
     }
 }
