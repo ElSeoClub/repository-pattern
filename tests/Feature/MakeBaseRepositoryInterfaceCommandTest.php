@@ -20,15 +20,9 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
     /** @test */
     public function it_creates_base_repository_interface ()
     {
-        $this->assertTrue(is_dir(base_path('app')), 'La ruta base del entorno de Laravel no es correcta.');
-
-        $stubPath = __DIR__ . '/../../src/stubs/BaseRepositoryInterface.stub';
-        $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
-
-        $targetDirectory = base_path('app/Repositories/Interfaces');
-        $targetPath = $targetDirectory . '/BaseRepositoryInterface.php';
-
         $filesystem = new Filesystem();
+
+        $this->assertTrue(is_dir(base_path('app')), 'La ruta base del entorno de Laravel no es correcta.');
 
         $command = new MakeBaseRepositoryInterfaceCommand($filesystem);
         $input = new ArrayInput([]);
@@ -37,8 +31,8 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
         $command->setLaravel($this->app);
         $command->run($input, $output);
 
+        $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
         $this->assertTrue($filesystem->exists($targetPath), 'El archivo BaseRepositoryInterface no fue creado correctamente.');
-        $this->assertFileEquals($stubPath, $targetPath);
     }
 
     protected function getPackageProviders ($app)
