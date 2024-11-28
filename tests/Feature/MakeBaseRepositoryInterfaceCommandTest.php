@@ -10,34 +10,40 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class MakeBaseRepositoryInterfaceCommandTest extends TestCase
 {
+    private Filesystem $filesystem;
+
     protected function setUp (): void
     {
         parent::setUp();
 
-        $filesystem = new Filesystem();
+        $this->filesystem = new Filesystem();
         $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
-        if ($filesystem->exists($targetPath)) {
-            $filesystem->delete($targetPath);
+        if ($this->filesystem->exists($targetPath)) {
+            $this->filesystem->delete($targetPath);
         }
     }
 
     /** @test */
     public function it_creates_base_repository_interface ()
     {
-        $filesystem = new Filesystem();
 
         $this->assertTrue(is_dir(base_path('app')), 'The app directory does not exist.');
 
-        $command = new MakeBaseRepositoryInterfaceCommand($filesystem);
+        $this->executeCommand();
 
+        $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
+        $this->assertTrue($this->filesystem->exists($targetPath), 'The base repository interface was not created.');
+    }
+
+    private function executeCommand (): void
+    {
+        $this->filesystem = new Filesystem();
+        $command = new MakeBaseRepositoryInterfaceCommand($this->filesystem);
         $command->setLaravel($this->app);
 
         $input = new ArrayInput([]);
         $output = new NullOutput();
 
         $command->run($input, $output);
-
-        $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
-        $this->assertTrue($filesystem->exists($targetPath), 'The base repository interface was not created.');
     }
 }
