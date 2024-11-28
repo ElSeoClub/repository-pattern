@@ -26,7 +26,17 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
         $stubPath = __DIR__ . '/../../src/stubs/BaseRepositoryInterface.stub';
         $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
 
+        $targetDirectory = base_path('app/Repositories/Interfaces');
+        $targetPath = $targetDirectory . '/BaseRepositoryInterface.php';
+
         $filesystem = new Filesystem();
+
+        // Crear el directorio si no existe
+        if (!$filesystem->exists($targetDirectory)) {
+            $filesystem->makeDirectory($targetDirectory, 0755, true);
+        }
+
+        // Limpiar archivo existente si está presente
         if ($filesystem->exists($targetPath)) {
             $filesystem->delete($targetPath);
         }
@@ -35,10 +45,12 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
         $input = new ArrayInput([]);
         $output = new NullOutput();
 
+        // Ejecutar el comando
         $command->setLaravel($this->app);
         $command->run($input, $output);
 
-        $this->assertTrue($filesystem->exists($targetPath));
+        // Comprobaciones
+        $this->assertTrue($filesystem->exists($targetPath), 'El archivo BaseRepositoryInterface no fue creado correctamente.');
         $this->assertFileEquals($stubPath, $targetPath);
     }
 
