@@ -16,7 +16,7 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
         parent::setUp();
 
         // Configuración necesaria para la ruta de los stubs
-        $this->app->instance('path', realpath(__DIR__ . '/../../src')); // Ajustar la ruta a src
+        $this->app->instance('path', base_path()); // Ajustar la ruta a src
     }
 
     /** @test */
