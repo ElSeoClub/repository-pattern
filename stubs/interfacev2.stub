@@ -1,9 +1,9 @@
 <?php
 
-namespace {{namespace}};
+namespace DummyNamespace;
 
 use Illuminate\Support\Collection;
-use {{model_namespace}}\{{model}};
+use DummyModelUse;
 
 interface DummyClass
 {

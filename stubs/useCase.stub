@@ -1,0 +1,21 @@
+<?php
+
+namespace DummyNamespace;
+
+use DummyModelInterfaceUse;
+use Illuminate\Support\Facades\DB;
+
+final readonly class DummyClass
+{
+    private DummyModelInterface $repository;
+
+    public function __construct(DummyModelInterface $repository)
+    {
+        $this->repository = $repository;
+    }
+
+    public function execute(array $data)
+    {
+        // TODO: Implement execute() method.
+    }
+}

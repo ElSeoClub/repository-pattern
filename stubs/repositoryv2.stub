@@ -1,0 +1,16 @@
+<?php
+
+namespace DummyNamespace;
+
+use Illuminate\Support\Collection;
+use DummyModelUse;
+use DummyInterfaceUse;
+
+final readonly class DummyClass implements DummyInterface
+{
+    public function __construct(private DummyModel $model)
+    {
+    }
+
+DummyMethods
+}

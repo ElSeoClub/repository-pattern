@@ -33,10 +33,10 @@ return [
             'parameters' => [
                 ['id' => 'int'],
             ],
-            'return' => '?{{model}}',
+            'return' => '?DummyModel',
             'logic' => [
                 'default' => 'return $this->model->find($id);',
-                'cache' => 'return Cache::remember("{{model}}:{$id}", 60, function() use ($id) { return $this->repository->find($id); });',
+                'cache' => 'return Cache::remember("DummyModel:{$id}", 60, function() use ($id) { return $this->repository->find($id); });',
             ],
         ],
         [
@@ -45,7 +45,7 @@ return [
             'return' => 'Collection',
             'logic' => [
                 'default' => 'return $this->model->all();',
-                'cache' => 'return Cache::remember("{{model}}:all", 60, function() { return $this->repository->all(); });',
+                'cache' => 'return Cache::remember("DummyModel:all", 60, function() { return $this->repository->all(); });',
             ],
         ],
         [
@@ -53,13 +53,13 @@ return [
             'parameters' => [
                 ['data' => 'array'],
             ],
-            'return' => '{{model}}',
+            'return' => 'DummyModel',
             'logic' => [
                 'default' => 'return $this->model->create($data);',
                 'cache' => '
                     $created = $this->repository->create($data);
-                    Cache::forget("{{model}}:all");
-                    Cache::put("{{model}}:{$created->id}", $created, 60);
+                    Cache::forget("DummyModel:all");
+                    Cache::put("DummyModel:{$created->id}", $created, 60);
                     return $created;
                 ',
             ],
@@ -76,9 +76,9 @@ return [
                 'cache' => '
                     $updated = $this->repository->update($id, $data);
                     if ($updated) {
-                        Cache::forget("{{model}}:{$id}");
-                        Cache::forget("{{model}}:all");
-                        Cache::put("{{model}}:{$id}", $this->repository->find($id), 60);
+                        Cache::forget("DummyModel:{$id}");
+                        Cache::forget("DummyModel:all");
+                        Cache::put("DummyModel:{$id}", $this->repository->find($id), 60);
                     }
                     return $updated;
                 ',
@@ -95,8 +95,8 @@ return [
                 'cache' => '
                     $deleted = $this->repository->delete($id);
                     if ($deleted) {
-                        Cache::forget("{{model}}:{$id}");
-                        Cache::forget("{{model}}:all");
+                        Cache::forget("DummyModel:{$id}");
+                        Cache::forget("DummyModel:all");
                     }
                     return $deleted;
                 ',

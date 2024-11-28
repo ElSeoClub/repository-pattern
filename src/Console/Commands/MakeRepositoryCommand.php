@@ -28,11 +28,6 @@ class MakeRepositoryCommand extends Command
     public function handle (): void
     {
         $this->findModelNameAndNamespace($this->argument('model'));
-        if (!$this->modelName || !$this->modelNamespace || $this->subfolderNamespace === null || $this->subfolder === null) {
-            $this->error("Model {$this->argument('model')} not found");
-
-            exit(1);
-        }
 
         $this->createRepository();
         $this->createInterface();
@@ -64,7 +59,7 @@ class MakeRepositoryCommand extends Command
             $this->warn("The repository {$this->modelName}Repository already exists.");
             $isCreated = true;
         }
-        
+
         if ($this->files->exists($pathCache)) {
             $this->warn("The repository {$this->modelName}CacheRepository already exists.");
             $isCreated = true;
