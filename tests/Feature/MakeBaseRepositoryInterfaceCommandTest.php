@@ -20,7 +20,8 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
     /** @test */
     public function it_creates_base_repository_interface ()
     {
-        // Preparar
+        $this->assertTrue(is_dir(base_path('app')), 'La ruta base del entorno de Laravel no es correcta.');
+
         $stubPath = __DIR__ . '/../../src/stubs/BaseRepositoryInterface.stub';
         $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
 
