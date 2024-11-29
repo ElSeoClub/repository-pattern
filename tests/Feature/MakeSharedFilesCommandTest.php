@@ -26,7 +26,7 @@ class MakeSharedFilesCommandTest extends TestCase
         $this->executeCommand();
         $targetPath = base_path('app/Core/Shared/Sanitization/SanitizationProcessor.php');
 
-        $this->assertTrue($this->filesystem->exists($targetPath), 'The base repository interface was not created.');
+        $this->assertTrue($this->filesystem->exists($targetPath), 'The SanitizationProcessor file was not created.');
     }
 
     private function executeCommand(): void
@@ -39,5 +39,8 @@ class MakeSharedFilesCommandTest extends TestCase
         $output = new NullOutput();
 
         $command->run($input, $output);
+        /** @var ClassLoader $loader */
+        $loader = require base_path('vendor/autoload.php');
+        $loader->addPsr4('App\\Core\\Shared\\Sanitization\\', base_path('app/Core/Shared/Sanitization'));
     }
 }
