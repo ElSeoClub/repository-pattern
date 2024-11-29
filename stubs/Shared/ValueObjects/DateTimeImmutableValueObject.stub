@@ -1,0 +1,48 @@
+<?php
+
+namespace DummyNamespace;
+
+use DateTimeImmutable;
+use InvalidArgumentException;
+
+abstract class DateTimeImmutableValueObject extends BaseValueObject
+{
+    private DateTimeImmutable $value;
+
+    public function __construct(DateTimeImmutable $value)
+    {
+        $this->ensureIsValidDate($value);
+        $this->value = $value;
+    }
+
+    public static function fromString(string $date): self
+    {
+        $dateTime = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $date);
+
+        if ($dateTime === false) {
+            throw new InvalidArgumentException("Invalid date format: {$date}");
+        }
+
+        return new self($dateTime);
+    }
+
+    public function getValue(): DateTimeImmutable
+    {
+        return $this->value;
+    }
+
+    public function toString(): string
+    {
+        return $this->value?->format('Y-m-d H:i:s');
+    }
+
+    private function ensureIsValidDate(DateTimeImmutable $date): void
+    {
+        // Add custom validation logic if needed.
+        // Example: Ensure the date is not in the future.
+        $now = new DateTimeImmutable();
+        if ($date > $now) {
+            throw new InvalidArgumentException("The date cannot be in the future.");
+        }
+    }
+}

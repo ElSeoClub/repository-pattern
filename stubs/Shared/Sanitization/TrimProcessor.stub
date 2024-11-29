@@ -1,0 +1,11 @@
+<?php
+
+namespace DummyNamespace;
+
+final readonly class TrimProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return trim($value);
+    }
+}

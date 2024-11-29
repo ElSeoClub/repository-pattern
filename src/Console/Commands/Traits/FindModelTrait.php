@@ -6,6 +6,7 @@ trait FindModelTrait
 {
     protected string $modelNamespace;
     protected string $modelName;
+    protected string $modelClass;
     protected string $subfolderNamespace;
     protected string $subfolder;
 
@@ -18,6 +19,7 @@ trait FindModelTrait
             $this->modelName = $model;
             $this->subfolderNamespace = '';
             $this->subfolder = '';
+            $this->modelClass = "$namespace\\$model";
 
             return;
         }
@@ -46,6 +48,7 @@ trait FindModelTrait
                 $this->subfolder = $subfolder;
                 $this->subfolderNamespace = !empty($subfolder) ? '\\' . str_replace('/', '\\', $subfolder) : '';
                 $this->modelNamespace = $namespace . $this->subfolderNamespace;
+                $this->modelClass = $fullClass;
 
                 return;
             }

@@ -1,0 +1,11 @@
+<?php
+
+namespace DummyNamespace;
+
+final class ToUpperCaseProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return mb_strtoupper($value, 'UTF-8');
+    }
+}

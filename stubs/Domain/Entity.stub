@@ -1,0 +1,10 @@
+<?php
+
+namespace DummyNamespace;
+
+DummyUseProperties
+final readonly class DummyEntity {
+    public function __construct(DummyProperties) {
+    }
+DummyGettersProperties
+}

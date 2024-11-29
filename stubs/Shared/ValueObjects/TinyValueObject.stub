@@ -1,0 +1,23 @@
+<?php
+
+namespace DummyNamespace;
+
+class TinyValueObject extends BaseValueObject
+{
+    private int $value;
+    const MIN_LENGTH = 1;
+    const MAX_LENGTH = 1;
+
+    public function __construct(int $value)
+    {
+        parent::__construct($value, self::MIN_LENGTH, self::MAX_LENGTH);
+        $this->value = $value;
+    }
+
+    public function getValue(): int
+    {
+        return $this->value;
+    }
+
+}
+

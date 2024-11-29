@@ -2,27 +2,32 @@
 
 namespace Elseoclub\RepositoryPattern\Providers;
 
-use Elseoclub\RepositoryPattern\Console\Commands\base;
-use Elseoclub\RepositoryPattern\Console\Commands\MakeBaseRepositoryInterfaceCommand;
+use Elseoclub\RepositoryPattern\Console\Commands\Domain\MakeEntityCommand;
+use Elseoclub\RepositoryPattern\Console\Commands\Domain\MakeEntityValueObjectsCommand;
+use Elseoclub\RepositoryPattern\Console\Commands\Domain\MakeSingleEntityValueObjectCommand;
+use Elseoclub\RepositoryPattern\Console\Commands\MakeRepositoryCommand;
 use Elseoclub\RepositoryPattern\Console\Commands\MakeRepositoryInterfaceCommand;
 use Elseoclub\RepositoryPattern\Console\Commands\MakeRepositoryV2Command;
 use Elseoclub\RepositoryPattern\Console\Commands\MakeUseCaseCommand;
 use Elseoclub\RepositoryPattern\Console\Commands\RepositoryBindCommand;
-use Illuminate\Foundation\Console\InterfaceMakeCommand;
+use Elseoclub\RepositoryPattern\Console\Commands\Shared\MakeSharedFilesCommand;
 use Illuminate\Support\ServiceProvider;
-use Elseoclub\RepositoryPattern\Console\Commands\MakeRepositoryCommand;
 
 class ModelRepositoryServiceProvider extends ServiceProvider
 {
-    public function boot (): void
+    public function boot(): void
     {
-        if ($this->app->runningInConsole()) {
+        if($this->app->runningInConsole()) {
             $this->commands([
                 MakeRepositoryCommand::class,
                 MakeRepositoryV2Command::class,
                 MakeUseCaseCommand::class,
                 RepositoryBindCommand::class,
-                MakeRepositoryInterfaceCommand::class
+                MakeRepositoryInterfaceCommand::class,
+                MakeEntityCommand::class,
+                MakeSharedFilesCommand::class,
+                MakeEntityValueObjectsCommand::class,
+                MakeSingleEntityValueObjectCommand::class,
             ]);
 
             $this->publishes([
@@ -31,7 +36,7 @@ class ModelRepositoryServiceProvider extends ServiceProvider
         }
     }
 
-    public function register (): void
+    public function register(): void
     {
         $this->mergeConfigFrom(
             __DIR__ . '/../../config/repository.php',

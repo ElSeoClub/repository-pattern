@@ -1,0 +1,19 @@
+<?php
+
+namespace DummyNamespace;
+
+class VarcharValueObject extends BaseValueObject
+{
+    private string $value;
+
+    public function __construct(string $value, int $minLength = 0, int $maxLength = 65535)
+    {
+        parent::__construct($value, $minLength, $maxLength);
+        $this->value = $value;
+    }
+
+    public function getValue(): string
+    {
+        return $this->value;
+    }
+}

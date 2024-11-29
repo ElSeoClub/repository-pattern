@@ -1,0 +1,11 @@
+<?php
+
+namespace DummyNamespace;
+
+final class RemoveWhitespaceProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return preg_replace('/\s+/', '', $value);
+    }
+}

@@ -1,0 +1,13 @@
+<?php
+
+namespace DummyNamespace;
+
+use Normalizer;
+
+final class NormalizeUnicodeProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return Normalizer::normalize($value, Normalizer::FORM_C);
+    }
+}

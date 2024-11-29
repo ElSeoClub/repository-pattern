@@ -1,0 +1,21 @@
+<?php
+
+namespace DummyNamespace;
+
+class IdValueObject extends BaseValueObject
+{
+    private int $value;
+
+    public function __construct(int $value, int $minLength = 1, int $maxLength = 20)
+    {
+        parent::__construct($value, $minLength, $maxLength);
+        $this->value = $value;
+    }
+
+    public function getValue(): int
+    {
+        return $this->value;
+    }
+
+}
+

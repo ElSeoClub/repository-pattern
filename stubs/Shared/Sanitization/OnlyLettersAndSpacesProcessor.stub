@@ -1,0 +1,11 @@
+<?php
+
+namespace DummyNamespace;
+
+final class OnlyLettersAndSpacesProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return preg_replace('/[^\p{L}\s]/u', '', $value);
+    }
+}

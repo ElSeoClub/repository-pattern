@@ -1,0 +1,14 @@
+<?php
+
+namespace DummyNamespace;
+
+use App\Core\Shared\ValueObjects\IdValueObject;
+
+class DummyEntityDummyColumn extends IdValueObject
+{
+	public function __construct(int $value)
+	{
+		parent::__construct($value);
+	}
+}
+

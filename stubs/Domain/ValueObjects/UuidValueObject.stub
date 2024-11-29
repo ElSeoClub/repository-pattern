@@ -1,0 +1,14 @@
+<?php
+
+namespace DummyNamespace;
+
+use App\Core\Shared\ValueObjects\UuidValueObject;
+
+class DummyEntityDummyColumn extends UuidValueObject
+{
+	public function __construct (string $value)
+	{
+		parent::__construct($value);
+	}
+}
+

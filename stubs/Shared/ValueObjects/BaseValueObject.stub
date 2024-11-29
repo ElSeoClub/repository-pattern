@@ -1,0 +1,81 @@
+<?php
+
+namespace DummyNamespace;
+
+use InvalidArgumentException;
+
+abstract class BaseValueObject
+{
+    private mixed $value;
+
+    public function __construct($value, ?int $minLength = null, ?int $maxLength = null, array $sanitizationStrategies = [])
+    {
+        if(is_string($value)) {
+            foreach($sanitizationStrategies as $strategy) {
+                if(!$strategy instanceof SanitizationInterface) {
+                    throw new InvalidArgumentException('Invalid sanitization strategy provided.');
+                }
+                $value = $strategy->sanitize($value);
+            }
+        }
+        if($minLength !== null || $maxLength !== null) {
+            $this->ensureLengthIsValid($value, $minLength, $maxLength);
+        }
+        $this->value = $value;
+    }
+
+    private function ensureLengthIsValid(string $value, ?int $minLength, ?int $maxLength): void
+    {
+        if(strlen($value) < $minLength) {
+            throw new InvalidArgumentException('The provided value must be at least ' . $minLength . ' characters long: ' . $value);
+        }
+
+        if(strlen($value) > $maxLength) {
+            throw new InvalidArgumentException('The provided value must not exceed ' . $maxLength . ' characters: ' . $value);
+        }
+
+        if($minLength > $maxLength) {
+            throw new InvalidArgumentException('The minimum length must not exceed the maximum length: ' . $minLength . ' > ' . $maxLength);
+        }
+
+        if($minLength < 0) {
+            throw new InvalidArgumentException('The minimum length must be a positive integer: ' . $minLength);
+        }
+
+        if($maxLength < 0) {
+            throw new InvalidArgumentException('The maximum length must be a positive integer: ' . $maxLength);
+        }
+
+        if($minLength === 0 && $maxLength === 0) {
+            throw new InvalidArgumentException('The minimum and maximum length must not be both zero');
+        }
+
+        if($minLength === null && $maxLength !== null) {
+            throw new InvalidArgumentException('The minimum length must be provided if the maximum length is provided');
+        }
+
+        if($minLength !== null && $maxLength === null) {
+            throw new InvalidArgumentException('The maximum length must be provided if the minimum length is provided');
+        }
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->value;
+    }
+
+    public function toString(): string
+    {
+        return (string) $this->value;
+    }
+
+    abstract public function getValue(): mixed
+    {
+        return $this->value;
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->getValue();
+    }
+}

@@ -1,0 +1,11 @@
+<?php
+
+namespace DummyNamespace;
+
+final class CapitalizeWordsProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+}

@@ -1,0 +1,11 @@
+<?php
+
+namespace DummyNamespace;
+
+final class CapitalizeFirstWordProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return ucfirst(mb_strtolower($value, 'UTF-8'));
+    }
+}

@@ -1,0 +1,11 @@
+<?php
+
+namespace DummyNamespace;
+
+final class RemoveHTMLTagsProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return strip_tags($value);
+    }
+}

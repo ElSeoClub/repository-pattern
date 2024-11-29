@@ -1,0 +1,11 @@
+<?php
+
+namespace DummyNamespace;
+
+final class ToLowerCaseProcessor implements SanitizationProcessor
+{
+    public function sanitize(string $value): string
+    {
+        return mb_strtolower($value, 'UTF-8');
+    }
+}

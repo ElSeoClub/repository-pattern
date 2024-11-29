@@ -1,0 +1,17 @@
+<?php
+
+namespace DummyNamespace;
+
+use App\Core\Shared\ValueObjects\VarcharValueObject;
+
+class DummyEntityDummyColumn extends VarcharValueObject
+{
+    private const MAX_LENGTH = DummyMaxLength;
+    private const MIN_LENGTH = 0;
+
+    public function __construct (string $value)
+    {
+        parent::__construct($value, self::MIN_LENGTH, self::MAX_LENGTH);
+    }
+}
+

@@ -1,15 +1,15 @@
 <?php
 
-namespace Tests\Feature;
+namespace Feature;
 
-use Elseoclub\RepositoryPattern\Console\Commands\MakeBaseRepositoryInterfaceCommand;
+use Elseoclub\RepositoryPattern\Console\Commands\Shared\MakeSharedFilesCommand;
 use Illuminate\Filesystem\Filesystem;
 use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
-class MakeBaseRepositoryInterfaceCommandTest extends TestCase
+class MakeSharedFilesCommandTest extends TestCase
 {
     private Filesystem $filesystem;
 
@@ -18,30 +18,26 @@ class MakeBaseRepositoryInterfaceCommandTest extends TestCase
         parent::setUp();
 
         $this->filesystem = new Filesystem();
-        $targetPath       = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
-        if($this->filesystem->exists($targetPath)) {
-            $this->filesystem->delete($targetPath);
-        }
     }
 
     #[Test]
     public function it_creates_base_repository_interface()
     {
         $this->executeCommand();
-        $targetPath = base_path('app/Repositories/Interfaces/BaseRepositoryInterface.php');
+        $targetPath = base_path('app/Core/Shared/Sanitization/SanitizationProcessor.php');
+
         $this->assertTrue($this->filesystem->exists($targetPath), 'The base repository interface was not created.');
     }
 
     private function executeCommand(): void
     {
         $this->filesystem = new Filesystem();
-        $command          = new MakeBaseRepositoryInterfaceCommand($this->filesystem);
+        $command          = new MakeSharedFilesCommand($this->filesystem);
         $command->setLaravel($this->app);
 
         $input  = new ArrayInput([]);
         $output = new NullOutput();
 
         $command->run($input, $output);
-
     }
 }

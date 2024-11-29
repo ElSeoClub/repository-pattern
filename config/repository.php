@@ -15,7 +15,7 @@ return [
     | php artisan repository:bind-default
     |
     */
-    'cache' => false,
+    'cache'      => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -29,34 +29,34 @@ return [
     */
     'interfaces' => [
         [
-            'name' => 'find',
+            'name'       => 'find',
             'parameters' => [
                 ['id' => 'int'],
             ],
-            'return' => '?DummyModel',
-            'logic' => [
+            'return'     => '?DummyModel',
+            'logic'      => [
                 'default' => 'return $this->model->find($id);',
-                'cache' => 'return Cache::remember("DummyModel:{$id}", 60, function() use ($id) { return $this->repository->find($id); });',
+                'cache'   => 'return Cache::remember("DummyModel:{$id}", 60, function() use ($id) { return $this->repository->find($id); });',
             ],
         ],
         [
-            'name' => 'all',
+            'name'       => 'all',
             'parameters' => [],
-            'return' => 'Collection',
-            'logic' => [
+            'return'     => 'Collection',
+            'logic'      => [
                 'default' => 'return $this->model->all();',
-                'cache' => 'return Cache::remember("DummyModel:all", 60, function() { return $this->repository->all(); });',
+                'cache'   => 'return Cache::remember("DummyModel:all", 60, function() { return $this->repository->all(); });',
             ],
         ],
         [
-            'name' => 'create',
+            'name'       => 'create',
             'parameters' => [
                 ['data' => 'array'],
             ],
-            'return' => 'DummyModel',
-            'logic' => [
+            'return'     => 'DummyModel',
+            'logic'      => [
                 'default' => 'return $this->model->create($data);',
-                'cache' => '
+                'cache'   => '
                     $created = $this->repository->create($data);
                     Cache::forget("DummyModel:all");
                     Cache::put("DummyModel:{$created->id}", $created, 60);
@@ -65,15 +65,15 @@ return [
             ],
         ],
         [
-            'name' => 'update',
+            'name'       => 'update',
             'parameters' => [
                 ['id' => 'int'],
                 ['data' => 'array'],
             ],
-            'return' => 'bool',
-            'logic' => [
+            'return'     => 'bool',
+            'logic'      => [
                 'default' => 'return $this->model->where(\'id\', $id)->update($data);',
-                'cache' => '
+                'cache'   => '
                     $updated = $this->repository->update($id, $data);
                     if ($updated) {
                         Cache::forget("DummyModel:{$id}");
@@ -85,14 +85,14 @@ return [
             ],
         ],
         [
-            'name' => 'delete',
+            'name'       => 'delete',
             'parameters' => [
                 ['id' => 'int'],
             ],
-            'return' => 'bool',
-            'logic' => [
+            'return'     => 'bool',
+            'logic'      => [
                 'default' => 'return $this->model->where(\'id\', $id)->delete();',
-                'cache' => '
+                'cache'   => '
                     $deleted = $this->repository->delete($id);
                     if ($deleted) {
                         Cache::forget("DummyModel:{$id}");
@@ -102,6 +102,14 @@ return [
                 ',
             ],
         ],
+    ],
+
+    'ValueObjectExtends' => [
+        'id'    => [
+            ['BIGINT', \App\Core\Shared\ValueObjects\IdValueObject::class],
+            ['CHAR', \App\Core\Shared\ValueObjects\UuidValueObject::class],
+        ],
+        'email' => \App\Core\Shared\ValueObjects\EmailValueObject::class,
     ],
 ];
 
