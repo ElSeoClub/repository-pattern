@@ -40,7 +40,14 @@ class MakeSharedFilesCommandTest extends TestCase
 
         $command->run($input, $output);
         /** @var ClassLoader $loader */
-        $loader = require base_path('vendor/autoload.php');
-        $loader->addPsr4('App\\Core\\Shared\\Sanitization\\', base_path('app/Core/Shared/Sanitization'));
+        $autoloadPath = realpath(__DIR__ . '/../../../../vendor/autoload.php');
+        if(file_exists($autoloadPath)) {
+            /** @var Composer\Autoload\ClassLoader $loader */
+            $loader = require $autoloadPath;
+            $loader->addPsr4('App\\Core\\Shared\\Sanitization\\', base_path('app/Core/Shared/Sanitization'));
+        }
+        else {
+            throw new \RuntimeException('Autoloader not found at: ' . $autoloadPath);
+        }
     }
 }
